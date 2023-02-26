@@ -24,10 +24,10 @@ fn main() -> std::io::Result<()> {
     let home_path: String = env::var("HOME").unwrap().to_owned();
     let note_path: &str = "/notes/";
     let todo_path: &str = "/notes/todo/";
-    let absolute_note_path: String = home_path + note_path;
-    let absolute_todo_path: String = home_path + todo_path;
+    let absolute_note_path: String = home_path.clone() + note_path;
+    let absolute_todo_path: String = home_path.clone() + todo_path;
     let note_directory = NoterPaths {
-        home_path.clone(), 
+        home_path : home_path.clone(), 
         note_path : absolute_note_path, 
         todo_path : absolute_todo_path,
     };
@@ -67,17 +67,19 @@ fn main() -> std::io::Result<()> {
         }
     };
 
-    dbg!(note);
-    let file_exist: bool = Path::new(&note_directory.note_path).exists();
+    dbg!(&note);
+    let file_path: String = note_directory.note_path.clone() 
+        + &note.title.replace(" ", "_");  
+    let file_exist: bool = Path::new(&file_path).exists();
 
     if !file_exist {
-        File::create(note_directory.note_path.clone()).expect("File does not exist.");
+        File::create(&file_path).expect("File does not exist.");
     }
 
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
-        .open(note_directory.note_path)
+        .open(file_path)
         .unwrap();
 
     if let Err(e) = writeln!(file, "{:?}", &note) {
