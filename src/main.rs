@@ -3,11 +3,14 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
 
-pub struct Noter_paths {
+
+#[derive(Debug)]
+pub struct NoterPaths {
     home_path: String,
     note_path: String,
     todo_path: String,
 }
+#[derive(Debug)]
 pub struct Note {
     path: String,
     title: String,
@@ -20,15 +23,15 @@ pub struct Note {
 fn main() -> std::io::Result<()> {
     let home_path: String = env::var("HOME").unwrap().to_owned();
     let note_path: &str = "/notes/";
-    let todo_path: &str = "/todo/";
-    let absolute_note_path = home_path + note_path;
-    let absolute_todo_path = home_path + todo_path;
-    let note_directory = Noter_paths {
-        home_path : home_path, 
+    let todo_path: &str = "/notes/todo/";
+    let absolute_note_path: String = home_path + note_path;
+    let absolute_todo_path: String = home_path + todo_path;
+    let note_directory = NoterPaths {
+        home_path.clone(), 
         note_path : absolute_note_path, 
         todo_path : absolute_todo_path,
     };
-    dbg!(home_path);
+    dbg!(&note_directory);
     // Always check if my-thoughts exist in $HOME
     
     // Count arguments list to define prog behavior
@@ -36,32 +39,48 @@ fn main() -> std::io::Result<()> {
     // dbg!(args);
     let arguments_count: usize = args.len();
 
-    let all_paths: Note = match arguments_count {
+    let note: Note = match arguments_count {
         1 => {
             println!("Not writing anything. I quit!");
-            Note{"", "", "", ""}
+            Note{
+                path: String::from(""), 
+                title:  String::from(""), 
+                category: String::from(""), 
+                content: String::from("")
+            }
         }
-        2 => Note{&home_path, &args[1], "", ""},
-        _ => Note{&home_path, &args[1], &args[2], ""},
+        2 => {
+            Note{
+                path: note_path.to_owned(), 
+                title: args[1].clone(), 
+                category: String::from(""), 
+                content: String::from("")
+            }
+        }
+        _ => {
+            Note{
+                path: note_path.to_owned(), 
+                title: args[1].clone(), 
+                category: args[2].clone(), 
+                content: String::from("")
+            }
+        }
     };
 
-    let file_path: String = String::from(
-        home_path.to_owned() + "/" + &file_path_user.to_owned()
-    );
-    dbg!(&file_path);
-    let file_exist: bool = Path::new(&file_path).exists();
+    dbg!(note);
+    let file_exist: bool = Path::new(&note_directory.note_path).exists();
 
     if !file_exist {
-        File::create(file_path.clone()).expect("File does not exist.");
+        File::create(note_directory.note_path.clone()).expect("File does not exist.");
     }
 
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
-        .open(&file_path)
+        .open(note_directory.note_path)
         .unwrap();
 
-    if let Err(e) = writeln!(file, "{}", note_user) {
+    if let Err(e) = writeln!(file, "{:?}", &note) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
