@@ -58,31 +58,45 @@ fn main() -> std::io::Result<()> {
             }
         }
         _ => {
+            let note_is_todo: bool = args[2].contains("todo");
+            let category: &str = match note_is_todo {
+                true => "todo",
+                _ => "note"
+            };
+            let file_path: String = match note_is_todo {
+                true => {
+                    note_directory.todo_path.clone()
+                        + &args[1].replace(" ", "_")
+                }
+                _ => { 
+                    note_directory.note_path.clone()
+                        + &args[1].replace(" ", "_")
+                }
+            };
+
             Note{
-                path: note_path.to_owned(), 
+                path: file_path, 
                 title: args[1].clone(), 
-                category: args[2].clone(), 
-                content: String::from("")
+                category: category.to_string(),
+                content:args[2].clone() 
             }
         }
     };
 
     dbg!(&note);
-    let file_path: String = note_directory.note_path.clone() 
-        + &note.title.replace(" ", "_");  
-    let file_exist: bool = Path::new(&file_path).exists();
+    let file_exist: bool = Path::new(&note.path).exists();
 
     if !file_exist {
-        File::create(&file_path).expect("File does not exist.");
+        File::create(&note.path).expect("File does not exist.");
     }
 
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
-        .open(file_path)
+        .open(&note.path)
         .unwrap();
 
-    if let Err(e) = writeln!(file, "{:?}", &note) {
+    if let Err(e) = writeln!(file, "{:?}", &note.content) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
