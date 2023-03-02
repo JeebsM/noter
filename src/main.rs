@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
@@ -22,18 +22,23 @@ pub struct Note {
 // note with 3 arguments: write a file to thoughts directory
 fn main() -> std::io::Result<()> {
     let home_path: String = env::var("HOME").unwrap().to_owned();
-    let note_path: &str = "/notes/";
-    let todo_path: &str = "/notes/todo/";
+    let note_path: &str = "/my-thoughts/notes/";
+    let todo_path: &str = "/my-thoughts/notes/todo/";
     let absolute_note_path: String = home_path.clone() + note_path;
     let absolute_todo_path: String = home_path.clone() + todo_path;
     let note_directory = NoterPaths {
-        home_path : home_path.clone(), 
-        note_path : absolute_note_path, 
+        home_path : home_path.clone(),
+        note_path : absolute_note_path,
         todo_path : absolute_todo_path,
     };
-    dbg!(&note_directory);
+    // dbg!(&note_directory);
     // Always check if my-thoughts exist in $HOME
-    
+    let directory_creation_result = fs::create_dir_all(&todo_path);
+    let directory_creation = match directory_creation_result {
+        Ok(_) => println!("my-thougts directory was created"),
+        Err(error) => println!("Directory creation failed: {:?}", error),
+    };
+
     // Count arguments list to define prog behavior
     let args: &Vec<String> = &env::args().collect();
     // dbg!(args);
@@ -43,17 +48,17 @@ fn main() -> std::io::Result<()> {
         1 => {
             println!("Not writing anything. I quit!");
             Note{
-                path: String::from(""), 
-                title:  String::from(""), 
-                category: String::from(""), 
+                path: String::from(""),
+                title:  String::from(""),
+                category: String::from(""),
                 content: String::from("")
             }
         }
         2 => {
             Note{
-                path: note_path.to_owned(), 
-                title: args[1].clone(), 
-                category: String::from(""), 
+                path: note_path.to_owned(),
+                title: args[1].clone(),
+                category: String::from(""),
                 content: String::from("")
             }
         }
@@ -68,26 +73,30 @@ fn main() -> std::io::Result<()> {
                     note_directory.todo_path.clone()
                         + &args[1].replace(" ", "_")
                 }
-                _ => { 
+                _ => {
                     note_directory.note_path.clone()
                         + &args[1].replace(" ", "_")
                 }
             };
 
             Note{
-                path: file_path, 
-                title: args[1].clone(), 
+                path: file_path,
+                title: args[1].clone(),
                 category: category.to_string(),
-                content:args[2].clone() 
+                content:args[2].clone()
             }
         }
     };
-
+    // TODO: check why the file_path does not have the name of the file
     dbg!(&note);
     let file_exist: bool = Path::new(&note.path).exists();
 
     if !file_exist {
-        File::create(&note.path).expect("File does not exist.");
+        let file_creation_result = File::create(&note.path);
+        let file_creation = match file_creation_result {
+            Ok(_) => println!("File created in {}", &note.path),
+            Err(error) => println!("File creation failed: {:?}", error),
+        };
     }
 
     let mut file = OpenOptions::new()
