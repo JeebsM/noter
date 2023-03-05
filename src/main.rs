@@ -6,7 +6,6 @@ use std::path::Path;
 
 #[derive(Debug)]
 pub struct NoterPaths {
-    home_path: String,
     note_path: String,
     todo_path: String,
 }
@@ -21,20 +20,26 @@ pub struct Note {
 // note with 2 arguments: write a task to todo directory
 // note with 3 arguments: write a file to thoughts directory
 fn main() -> std::io::Result<()> {
-    let home_path: String = env::var("HOME").unwrap().to_owned();
-    let note_path: &str = "/my-thoughts/notes/";
-    let todo_path: &str = "/my-thoughts/notes/todo/";
+    let home_path: String = env::var("HOME").unwrap().to_owned() + "/";
+    let note_path: &str = "my-thoughts/";
+    let todo_path: &str = "my-thoughts/todo/";
     let absolute_note_path: String = home_path.clone() + note_path;
     let absolute_todo_path: String = home_path.clone() + todo_path;
     let note_directory = NoterPaths {
-        home_path : home_path.clone(),
         note_path : absolute_note_path,
         todo_path : absolute_todo_path,
+    };
+    let empty_note = Note{
+        path: String::from(""),
+        title: String::from(""),
+        category: String::from(""),
+        content: String::from(""),
     };
     // dbg!(&note_directory);
     // Always check if my-thoughts exist in $HOME
     let directory_creation_result = fs::create_dir_all(&todo_path);
-    let directory_creation = match directory_creation_result {
+    //let directory_creation = 
+    match directory_creation_result {
         Ok(_) => println!("my-thougts directory was created"),
         Err(error) => println!("Directory creation failed: {:?}", error),
     };
@@ -47,19 +52,17 @@ fn main() -> std::io::Result<()> {
     let note: Note = match arguments_count {
         1 => {
             println!("Not writing anything. I quit!");
-            Note{
-                path: String::from(""),
-                title:  String::from(""),
-                category: String::from(""),
-                content: String::from("")
-            }
+            empty_note
         }
         2 => {
+            let file_path: String = 
+                note_directory.note_path.clone()
+                    + &args[1].replace(" ", "_");
             Note{
-                path: note_path.to_owned(),
+                path: file_path,
                 title: args[1].clone(),
-                category: String::from(""),
-                content: String::from("")
+                category: String::from("note"),
+                content: String::from(""),
             }
         }
         _ => {
@@ -83,18 +86,17 @@ fn main() -> std::io::Result<()> {
                 path: file_path,
                 title: args[1].clone(),
                 category: category.to_string(),
-                content:args[2].clone()
+                content: args[2].clone(),
             }
         }
     };
-    // TODO: check why the file_path does not have the name of the file
-    dbg!(&note);
+    // dbg!(&note);
     let file_exist: bool = Path::new(&note.path).exists();
 
     if !file_exist {
         let file_creation_result = File::create(&note.path);
-        let file_creation = match file_creation_result {
-            Ok(_) => println!("File created in {}", &note.path),
+        match file_creation_result {
+            Ok(_) => println!("File created in {}", &note.category),
             Err(error) => println!("File creation failed: {:?}", error),
         };
     }
@@ -105,22 +107,9 @@ fn main() -> std::io::Result<()> {
         .open(&note.path)
         .unwrap();
 
-    if let Err(e) = writeln!(file, "{:?}", &note.content) {
+    if let Err(e) = writeln!(file, "{:?} : {:?}", &note.title, &note.content) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
     Ok(())
 }
-
-// use std::fs::File;
-// use std::io::BufReader;
-// use std::io::prelude::*;
-
-// fn main() -> std::io::Result<()> {
-//     let file = File::open("foo.txt")?;
-//     let mut buf_reader = BufReader::new(file);
-//     let mut contents = String::new();
-//     buf_reader.read_to_string(&mut contents)?;
-//     assert_eq!(contents, "Hello, world!");
-//     Ok(())
-// }
