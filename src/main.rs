@@ -2,7 +2,7 @@ use std::{env, fs};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
-
+use mod;
 
 #[derive(Debug)]
 pub struct NoterPaths {
@@ -38,9 +38,9 @@ fn main() -> std::io::Result<()> {
     // dbg!(&note_directory);
     // Always check if my-thoughts exist in $HOME
     let directory_creation_result = fs::create_dir_all(&todo_path);
-    //let directory_creation = 
+    //let directory_creation =
     match directory_creation_result {
-        Ok(_) => println!("my-thougts directory was created"),
+        Ok(_) => (),// println!("my-thougts directory was created"),
         Err(error) => println!("Directory creation failed: {:?}", error),
     };
 
@@ -55,7 +55,7 @@ fn main() -> std::io::Result<()> {
             empty_note
         }
         2 => {
-            let file_path: String = 
+            let file_path: String =
                 note_directory.note_path.clone()
                     + &args[1].replace(" ", "_");
             Note{
