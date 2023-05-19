@@ -2,7 +2,6 @@ use std::{env, fs};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
-use mod;
 
 #[derive(Debug)]
 pub struct NoterPaths {
